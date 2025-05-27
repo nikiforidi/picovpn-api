@@ -76,6 +76,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 
 // Middleware which shows the user init data.
 func showInitDataMiddleware(context *gin.Context) {
+	log.Println(context.Request.Context())
 	initData, ok := ctxInitData(context.Request.Context())
 	if !ok {
 		context.AbortWithStatusJSON(401, map[string]any{
