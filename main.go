@@ -111,17 +111,7 @@ func main() {
 
 	r := gin.New()
 
-	r.Use(authMiddleware(token), cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		// AllowMethods:     []string{"POST"},
-		// AllowHeaders:     []string{"Origin"},
-		// ExposeHeaders:    []string{"Content-Length"},
-		// AllowCredentials: true,
-		// AllowOriginFunc: func(origin string) bool {
-		// 	return origin == "https://github.com"
-		// },
-		// MaxAge: 12 * time.Hour,
-	}))
+	r.Use(authMiddleware(token), cors.Default())
 	r.POST("/auth", showInitDataMiddleware)
 	r.POST("/users", UserAdd)
 
