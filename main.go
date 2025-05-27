@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
@@ -114,7 +115,7 @@ func main() {
 	r.POST("/auth", showInitDataMiddleware)
 	r.POST("/users", UserAdd)
 
-	if err := r.Run(":8080"); err != nil {
+	if err := autotls.Run(r, "picovpn.ru:8080"); err != nil {
 		panic(err)
 	}
 }
