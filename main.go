@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
@@ -105,12 +106,22 @@ func UserAdd(context *gin.Context) {
 }
 
 func main() {
-	// Your secret bot token.
+	// Your secret bot tgoken.
 	token := os.Getenv("TG_BOT_TOKEN")
 
 	r := gin.New()
 
-	r.Use(authMiddleware(token))
+	r.Use(authMiddleware(token), cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		// AllowMethods:     []string{"POST"},
+		// AllowHeaders:     []string{"Origin"},
+		// ExposeHeaders:    []string{"Content-Length"},
+		// AllowCredentials: true,
+		// AllowOriginFunc: func(origin string) bool {
+		// 	return origin == "https://github.com"
+		// },
+		// MaxAge: 12 * time.Hour,
+	}))
 	r.POST("/auth", showInitDataMiddleware)
 	r.POST("/users", UserAdd)
 
