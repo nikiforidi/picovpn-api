@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"io"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -84,6 +87,21 @@ func showInitDataMiddleware(context *gin.Context) {
 	context.JSON(200, initData)
 }
 
+func UserAdd(context *gin.Context) {
+	b, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	user := userAdd{}
+	err = json.Unmarshal(b, &user)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(user.Username)
+}
+
 func main() {
 	// Your secret bot token.
 	token := os.Getenv("TG_BOT_TOKEN")
@@ -92,6 +110,7 @@ func main() {
 
 	r.Use(authMiddleware(token))
 	r.POST("/auth", showInitDataMiddleware)
+	r.POST("/users", UserAdd)
 
 	if err := r.Run(":3000"); err != nil {
 		panic(err)
