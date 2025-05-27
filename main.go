@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -76,7 +77,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 
 // Middleware which shows the user init data.
 func showInitDataMiddleware(context *gin.Context) {
-	log.Println(context.Request.Context())
+	fmt.Println(context.Request.Context())
 	initData, ok := ctxInitData(context.Request.Context())
 	if !ok {
 		context.AbortWithStatusJSON(401, map[string]any{
@@ -97,10 +98,10 @@ func UserAdd(context *gin.Context) {
 	user := userAdd{}
 	err = json.Unmarshal(b, &user)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		return
 	}
-	log.Println(user.Username)
+	fmt.Println(user.Username)
 }
 
 func main() {
