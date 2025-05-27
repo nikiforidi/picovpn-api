@@ -113,7 +113,7 @@ func main() {
 	r.POST("/auth", showInitDataMiddleware)
 	r.POST("/users", UserAdd)
 
-	if err := r.Run(":5000"); err != nil {
+	if err := r.Run(":8080"); err != nil {
 		panic(err)
 	}
 }
