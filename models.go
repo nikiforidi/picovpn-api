@@ -8,13 +8,13 @@ import (
 
 type User struct {
 	gorm.Model
-	TelegramID int64
+	TelegramID int64 `json:"telegramId"`
 	// PlanID     uint
 	// Plan       UserPlan
-	ChatID           int64
-	TelegramUsername string
-	Account          string
-	Wallet           string
+	ChatID           int64  `json:"chatId"`
+	TelegramUsername string `json:"telegramUsername"`
+	Account          string `json:"account"`
+	Wallet           string `json:"wallet"`
 }
 
 type PlanType int
