@@ -115,7 +115,7 @@ func main() {
 	r.POST("/auth", showInitDataMiddleware)
 	r.POST("/users", UserAdd)
 
-	err := r.RunTLS(":8080", "/etc/letsencrypt/live/picovpn.ru/fullchain.pem", "/etc/letsencrypt/live/picovpn.ru/privkey.pem")
+	err := r.RunTLS(":443", "/etc/letsencrypt/live/picovpn.ru/fullchain.pem", "/etc/letsencrypt/live/picovpn.ru/privkey.pem")
 	if err != nil {
 		panic(err)
 	}
