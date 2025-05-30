@@ -2,16 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
 
@@ -87,23 +85,38 @@ func showInitDataMiddleware(context *gin.Context) {
 		return
 	}
 
-	context.JSON(200, initData)
+	user := User{
+		// PlanID:     plan.ID,
+		// Plan:       plan,
+		TelegramID:       initData.User.ID,
+		ChatID:           initData.Chat.ID,
+		TelegramUsername: initData.User.Username,
+	}
+	result := DB.Create(&user)
+	if result.Error != nil {
+		logrus.Error(result.Error)
+		context.String(500, result.Error.Error())
+	} else {
+		context.JSON(200, user)
+	}
 }
 
-func UserAdd(context *gin.Context) {
-	b, err := io.ReadAll(context.Request.Body)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	user := userAdd{}
-	err = json.Unmarshal(b, &user)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(user.Username)
-}
+// func UserAdd(context *gin.Context) {
+// 	b, err := io.ReadAll(context.Request.Body)
+// 	if err != nil {
+// 		log.Println(err)
+// 		return
+// 	}
+// 	user := userAdd{}
+// 	err = json.Unmarshal(b, &user)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return
+// 	}
+// 	context.JSON(200, userID)
+
+// 	// fmt.Println(user.Password)
+// }
 
 func main() {
 	// Your secret bot tgoken.
@@ -113,7 +126,7 @@ func main() {
 
 	r.Use(authMiddleware(token), cors.Default())
 	r.POST("/api/auth", showInitDataMiddleware)
-	r.POST("/api/users", UserAdd)
+	// r.POST("/api/users", UserAdd)
 
 	err := r.Run(":8080")
 
