@@ -125,7 +125,7 @@ func main() {
 	r := gin.New()
 
 	r.Use(authMiddleware(token), cors.Default())
-	r.POST("/api/auth", showInitDataMiddleware)
+	r.POST("/auth", showInitDataMiddleware)
 	// r.POST("/api/users", UserAdd)
 
 	err := r.Run(":8080")
