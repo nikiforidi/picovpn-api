@@ -43,6 +43,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 			})
 			return
 		}
+		log.Println(string(body))
 		tma := AuthBody{}
 		err = json.Unmarshal(body, &tma)
 		if err != nil {
@@ -51,7 +52,6 @@ func authMiddleware(token string) gin.HandlerFunc {
 			})
 			return
 		}
-		log.Println(string(body))
 
 		if err := initdata.Validate(tma.TMA, token, time.Hour); err != nil {
 			context.AbortWithStatusJSON(401, map[string]any{
