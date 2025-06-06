@@ -34,7 +34,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 		// We expect passing init data in the Authorization header in the following format:
 		// <auth-type> <auth-data>
 		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
-		authParts := strings.Split(context.GetHeader("Authorization"), " ")
+		authParts := strings.Split(context.GetHeader("authorization"), " ")
 		if len(authParts) != 2 {
 			context.AbortWithStatusJSON(401, map[string]any{
 				"message": "Unauthorized",
