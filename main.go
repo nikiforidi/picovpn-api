@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -35,6 +36,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 		// <auth-type> <auth-data>
 		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
 		authParts := strings.Split(context.GetHeader("Authorization"), " ")
+		log.Println("authParts", authParts)
 		if len(authParts) != 2 {
 			context.AbortWithStatusJSON(401, map[string]any{
 				"message": "Unauthorized",
