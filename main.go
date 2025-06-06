@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log"
 	"os"
 	"time"
 
@@ -50,6 +51,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 			})
 			return
 		}
+		log.Println(string(body))
 
 		if err := initdata.Validate(tma.TMA, token, time.Hour); err != nil {
 			context.AbortWithStatusJSON(401, map[string]any{
