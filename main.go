@@ -54,9 +54,13 @@ func Validate(context *gin.Context) {
 			ChatID:           initData.Chat.ID,
 			TelegramUsername: initData.User.Username,
 		}
+		// Save user to database.
 		result := DB.Create(&user)
+		// If there is an error while saving user to database, return error.
 		if result.Error != nil {
-			context.String(500, result.Error.Error())
+			context.AbortWithStatusJSON(500, map[string]any{
+				"message": "Internal Server Error",
+			})
 			return
 		}
 	}
@@ -65,17 +69,40 @@ func Validate(context *gin.Context) {
 }
 
 func main() {
-	// Your secret bot tgoken.
-
+	// Set gin mode to release.
 	r := gin.New()
-
+	gin.SetMode(gin.ReleaseMode)
+	// Set gin logger.
+	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		Formatter: func(param gin.LogFormatterParams) string {
+			return "[" + param.TimeStamp.Format(time.RFC3339) + "] " +
+				param.Method + " " +
+				param.Path + " " +
+				param.ClientIP + " " +
+				param.ErrorMessage + " " +
+				param.Latency.String() + "\n"
+		},
+		Output: os.Stdout,
+	}))
+	// Set gin recovery.
+	r.Use(gin.Recovery())
+	// Set CORS middleware.
+	// You can customize CORS settings here.
+	// For example, you can allow only specific origins, methods, headers, etc.
 	r.Use(cors.Default())
-	// r.GET("/", showInitDataMiddleware)
 	r.POST("/auth", Validate)
 	// r.POST("/api/users", UserAdd)
 
 	// err := r.Run(":8080")
-
+	// Run the server on port 8080 with TLS.
+	// Make sure to replace the paths to your SSL certificate and key files.
+	// You can use Let's Encrypt or any other certificate authority.
+	// Make sure to have the certificate and key files in the specified paths.
+	// If you are using Let's Encrypt, you can use the following command to generate the certificate and key files:
+	// sudo certbot certonly --standalone -d picovpn.ru -d www.picovpn.ru
+	// Make sure to have the certificate and key files in the specified paths.
+	// If you are using a self-signed certificate, you can use the following command to generate the certificate and key files:
+	// openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
 	err := r.RunTLS(":8080", "/etc/letsencrypt/live/picovpn.ru/fullchain.pem", "/etc/letsencrypt/live/picovpn.ru/privkey.pem")
 	if err != nil {
 		panic(err)
