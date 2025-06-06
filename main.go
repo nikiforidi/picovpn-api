@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -11,138 +9,68 @@ import (
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
 
-type contextKey string
+var TOKEN string
 
-const (
-	_initDataKey contextKey = "init-data"
-)
-
-// Returns new context with specified init data.
-func withInitData(ctx context.Context, initData initdata.InitData) context.Context {
-	return context.WithValue(ctx, _initDataKey, initData)
+func init() {
+	// Get token from environment variable.
+	TOKEN = os.Getenv("TELEGRAM_BOT_TOKEN")
 }
 
-// Returns the init data from the specified context.
-func ctxInitData(ctx context.Context) (initdata.InitData, bool) {
-	initData, ok := ctx.Value(_initDataKey).(initdata.InitData)
-	return initData, ok
-}
+func Validate(context *gin.Context) {
+	// Init data in raw format.
+	initDataRaw := context.GetHeader("X-Telegram-Data")
 
-// Middleware which authorizes the external client.
-func authMiddleware(token string) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		// We expect passing init data in the Authorization header in the following format:
-		// <auth-type> <auth-data>
-		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
-		authParts := strings.Split(context.GetHeader("authorization"), " ")
-		if len(authParts) != 2 {
-			context.AbortWithStatusJSON(401, map[string]any{
-				"message": "Unauthorized",
-			})
-			return
-		}
+	// Define how long since init data generation date init data is valid.
+	expIn := 24 * time.Hour
 
-		authType := authParts[0]
-		authData := authParts[1]
-
-		switch authType {
-		case "tma":
-			// Validate init data. We consider init data sign valid for 1 hour from their
-			// creation moment.
-			if err := initdata.Validate(authData, token, time.Hour); err != nil {
-				context.AbortWithStatusJSON(401, map[string]any{
-					"message": err.Error(),
-				})
-				return
-			}
-
-			// Parse init data. We will surely need it in the future.
-			initData, err := initdata.Parse(authData)
-			if err != nil {
-				context.AbortWithStatusJSON(500, map[string]any{
-					"message": err.Error(),
-				})
-				return
-			}
-
-			context.Request = context.Request.WithContext(
-				withInitData(context.Request.Context(), initData),
-			)
-		}
-	}
-}
-
-// Middleware which shows the user init data.
-func showInitDataMiddleware(context *gin.Context) {
-	initData, ok := ctxInitData(context.Request.Context())
-	if !ok {
+	// Will return error in case, init data is invalid.
+	err := initdata.Validate(initDataRaw, TOKEN, expIn)
+	if err != nil {
 		context.AbortWithStatusJSON(401, map[string]any{
-			"message": "Init data not found",
+			"message": "Unauthorized",
 		})
 		return
 	}
+	initData, err := initdata.Parse(initDataRaw)
+	if err != nil {
+		context.AbortWithStatusJSON(401, map[string]any{
+			"message": "Unauthorized",
+		})
+		return
+	}
+	// If init data is valid, you can use it.
+	user, err := UserGetByTelegramID(initData.User.ID)
+	if err != nil {
+		context.String(500, err.Error())
+		return
+	}
 
-	context.JSON(200, initData)
+	if user != nil {
+		user := User{
+			// PlanID:     plan.ID,
+			// Plan:       plan,
+			TelegramID:       initData.User.ID,
+			ChatID:           initData.Chat.ID,
+			TelegramUsername: initData.User.Username,
+		}
+		result := DB.Create(&user)
+		if result.Error != nil {
+			context.String(500, result.Error.Error())
+			return
+		}
+		context.JSON(200, user)
+		return
+	}
 }
-
-// Middleware which shows the user init data.
-// func authenticateOrCreateNewUser(context *gin.Context) {
-// 	initData, ok := ctxInitData(context.Request.Context())
-// 	if !ok {
-// 		context.AbortWithStatusJSON(401, map[string]any{
-// 			"message": "Init data not found",
-// 		})
-// 		return
-// 	}
-
-// 	user, err := UserGetByTelegramID(initData.User.ID)
-// 	if err != nil {
-// 		context.String(500, err.Error())
-// 	} else if user != nil {
-// 		context.JSON(200, user)
-// 	} else {
-// 		user := User{
-// 			// PlanID:     plan.ID,
-// 			// Plan:       plan,
-// 			TelegramID:       initData.User.ID,
-// 			ChatID:           initData.Chat.ID,
-// 			TelegramUsername: initData.User.Username,
-// 		}
-// 		result := DB.Create(&user)
-// 		if result.Error != nil {
-// 			context.String(500, result.Error.Error())
-// 		} else {
-// 			context.JSON(200, user)
-// 		}
-// 	}
-// }
-
-// func UserAdd(context *gin.Context) {
-// 	b, err := io.ReadAll(context.Request.Body)
-// 	if err != nil {
-// 		log.Println(err)
-// 		return
-// 	}
-// 	user := userAdd{}
-// 	err = json.Unmarshal(b, &user)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return
-// 	}
-// 	context.JSON(200, userID)
-
-// 	// fmt.Println(user.Password)
-// }
 
 func main() {
 	// Your secret bot tgoken.
-	token := os.Getenv("TG_BOT_TOKEN")
 
 	r := gin.New()
 
-	r.Use(authMiddleware(token), cors.Default())
+	r.Use(cors.Default())
 	// r.GET("/", showInitDataMiddleware)
-	r.POST("/auth", showInitDataMiddleware)
+	r.POST("/auth", Validate)
 	// r.POST("/api/users", UserAdd)
 
 	// err := r.Run(":8080")
