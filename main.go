@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"io"
-	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -36,42 +34,41 @@ func authMiddleware(token string) gin.HandlerFunc {
 		// We expect passing init data in the Authorization header in the following format:
 		// <auth-type> <auth-data>
 		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
-		body, err := io.ReadAll(context.Request.Body)
-		if err != nil {
-			context.AbortWithStatusJSON(400, map[string]any{
-				"message": "Bad request: " + err.Error(),
-			})
-			return
-		}
-		log.Println(string(body))
-		tma := AuthBody{}
-		err = json.Unmarshal(body, &tma)
-		if err != nil {
-			context.AbortWithStatusJSON(400, map[string]any{
-				"message": "Bad request: " + err.Error(),
-			})
-			return
-		}
-
-		if err := initdata.Validate(tma.TMA, token, time.Hour); err != nil {
+		authParts := strings.Split(context.GetHeader("authorization"), " ")
+		if len(authParts) != 2 {
 			context.AbortWithStatusJSON(401, map[string]any{
-				"message": err.Error(),
+				"message": "Unauthorized",
 			})
 			return
 		}
 
-		// Parse init data. We will surely need it in the future.
-		initData, err := initdata.Parse(tma.TMA)
-		if err != nil {
-			context.AbortWithStatusJSON(500, map[string]any{
-				"message": err.Error(),
-			})
-			return
-		}
+		authType := authParts[0]
+		authData := authParts[1]
 
-		context.Request = context.Request.WithContext(
-			withInitData(context.Request.Context(), initData),
-		)
+		switch authType {
+		case "tma":
+			// Validate init data. We consider init data sign valid for 1 hour from their
+			// creation moment.
+			if err := initdata.Validate(authData, token, time.Hour); err != nil {
+				context.AbortWithStatusJSON(401, map[string]any{
+					"message": err.Error(),
+				})
+				return
+			}
+
+			// Parse init data. We will surely need it in the future.
+			initData, err := initdata.Parse(authData)
+			if err != nil {
+				context.AbortWithStatusJSON(500, map[string]any{
+					"message": err.Error(),
+				})
+				return
+			}
+
+			context.Request = context.Request.WithContext(
+				withInitData(context.Request.Context(), initData),
+			)
+		}
 	}
 }
 
