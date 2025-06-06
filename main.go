@@ -31,6 +31,7 @@ func Validate(context *gin.Context) {
 		})
 		return
 	}
+	// If init data is valid, you can parse it.
 	initData, err := initdata.Parse(initDataRaw)
 	if err != nil {
 		context.AbortWithStatusJSON(401, map[string]any{
@@ -44,9 +45,9 @@ func Validate(context *gin.Context) {
 		context.String(500, err.Error())
 		return
 	}
-
-	if user != nil {
-		user := User{
+	// If user is not found, you can create a new one.
+	if user == nil {
+		user = &User{
 			// PlanID:     plan.ID,
 			// Plan:       plan,
 			TelegramID:       initData.User.ID,
@@ -58,9 +59,9 @@ func Validate(context *gin.Context) {
 			context.String(500, result.Error.Error())
 			return
 		}
-		context.JSON(200, user)
-		return
 	}
+	// If you want to update user data, you can do it here.
+	context.JSON(200, user)
 }
 
 func main() {
