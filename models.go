@@ -42,3 +42,7 @@ type UserPlan struct {
 	IsActive  bool
 	ExpiresAt time.Time
 }
+
+type AuthBody struct {
+	TMA string `json:"tma"`
+}
