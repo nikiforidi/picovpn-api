@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -41,6 +42,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 			})
 			return
 		}
+		log.Println("authParts", authParts)
 
 		authType := authParts[0]
 		authData := authParts[1]
