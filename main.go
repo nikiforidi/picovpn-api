@@ -2,14 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
 
@@ -36,7 +34,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 		// We expect passing init data in the Authorization header in the following format:
 		// <auth-type> <auth-data>
 		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
-		authParts := strings.Split(context.GetHeader("authorization"), " ")
+		authParts := strings.Split(context.GetHeader("Authorization"), " ")
 		if len(authParts) != 2 {
 			context.AbortWithStatusJSON(401, map[string]any{
 				"message": "Unauthorized",
@@ -75,8 +73,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 }
 
 // Middleware which shows the user init data.
-func showInitDataMiddleware(context *gin.Context) {
-	fmt.Println(context.Request.Context())
+func authenticateOrCreateNewUser(context *gin.Context) {
 	initData, ok := ctxInitData(context.Request.Context())
 	if !ok {
 		context.AbortWithStatusJSON(401, map[string]any{
@@ -85,19 +82,25 @@ func showInitDataMiddleware(context *gin.Context) {
 		return
 	}
 
-	user := User{
-		// PlanID:     plan.ID,
-		// Plan:       plan,
-		TelegramID:       initData.User.ID,
-		ChatID:           initData.Chat.ID,
-		TelegramUsername: initData.User.Username,
-	}
-	result := DB.Create(&user)
-	if result.Error != nil {
-		logrus.Error(result.Error)
-		context.String(500, result.Error.Error())
-	} else {
+	user, err := UserGetByTelegramID(initData.User.ID)
+	if err != nil {
+		context.String(500, err.Error())
+	} else if user != nil {
 		context.JSON(200, user)
+	} else {
+		user := User{
+			// PlanID:     plan.ID,
+			// Plan:       plan,
+			TelegramID:       initData.User.ID,
+			ChatID:           initData.Chat.ID,
+			TelegramUsername: initData.User.Username,
+		}
+		result := DB.Create(&user)
+		if result.Error != nil {
+			context.String(500, result.Error.Error())
+		} else {
+			context.JSON(200, user)
+		}
 	}
 }
 
@@ -125,7 +128,7 @@ func main() {
 	r := gin.New()
 
 	r.Use(authMiddleware(token), cors.Default())
-	r.POST("/auth", showInitDataMiddleware)
+	r.POST("/auth", authenticateOrCreateNewUser)
 	// r.POST("/api/users", UserAdd)
 
 	// err := r.Run(":8080")
