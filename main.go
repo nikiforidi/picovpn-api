@@ -88,8 +88,18 @@ func main() {
 	r.Use(gin.Recovery())
 	// Set CORS middleware.
 	// You can customize CORS settings here.
-	// For example, you can allow only specific origins, methods, headers, etc.
-	r.Use(cors.Default())
+	// For example, you can allow only specific origins, methods, headers, etc
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"https://picovpn.ru", "https://www.picovpn.ru", "https://picovpn.ru:8080", "https://www.picovpn.ru:8080"},
+		AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "X-Requested-With", "X-Telegram-Data", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length", "X-Total-Count"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "https://picovpn.ru"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 	r.POST("/auth", Validate)
 	// r.POST("/api/users", UserAdd)
 
