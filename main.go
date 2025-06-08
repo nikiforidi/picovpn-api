@@ -100,7 +100,7 @@ func main() {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
-	r.POST("/auth", Validate)
+	r.POST("/api/auth", Validate)
 	// r.POST("/api/users", UserAdd)
 
 	// err := r.Run(":8080")
