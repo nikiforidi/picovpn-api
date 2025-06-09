@@ -77,11 +77,20 @@ func authMiddleware(token string) gin.HandlerFunc {
 				}
 			}
 
-			context.JSON(200, user)
+			plan := UserPlan{
+				ExpiresAt: time.Now().AddDate(0, 1, 0),
+				UserID:    user.ID,
+				User:      *user,
+			}
+			result := DB.Create(&plan)
+			if result.Error != nil {
+				context.AbortWithStatusJSON(500, map[string]any{
+					"message": result.Error,
+				})
+				return
+			}
 
-			// context.Request = context.Request.WithContext(
-			// 	withInitData(context.Request.Context(), initData),
-			// )
+			context.JSON(200, user)
 		}
 	}
 }
