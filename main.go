@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -10,13 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
-
-// var TOKEN string
-
-// func init() {
-// 	// Get token from environment variable.
-// 	TOKEN = os.Getenv("TELEGRAM_BOT_TOKEN")
-// }
 
 type contextKey string
 
@@ -48,6 +42,8 @@ func authMiddleware(token string) gin.HandlerFunc {
 			})
 			return
 		}
+
+		log.Println(authParts)
 
 		authType := authParts[0]
 		authData := authParts[1]
@@ -91,68 +87,6 @@ func showInitDataMiddleware(context *gin.Context) {
 
 	context.JSON(200, initData)
 }
-
-// func main() {
-//
-
-// 	r := gin.New()
-
-// 	if err := r.Run(":3000"); err != nil {
-// 		panic(err)
-// 	}
-// }
-
-// func Validate(context *gin.Context) {
-// 	// Init data in raw format.
-// 	initDataRaw := context.GetHeader("X-Telegram-Data")
-
-// 	// Define how long since init data generation date init data is valid.
-// 	expIn := 24 * time.Hour
-
-// 	// Will return error in case, init data is invalid.
-// 	err := initdata.Validate(initDataRaw, TOKEN, expIn)
-// 	if err != nil {
-// 		context.AbortWithStatusJSON(401, map[string]any{
-// 			"message": "Unauthorized",
-// 		})
-// 		return
-// 	}
-// 	// If init data is valid, you can parse it.
-// 	initData, err := initdata.Parse(initDataRaw)
-// 	if err != nil {
-// 		context.AbortWithStatusJSON(401, map[string]any{
-// 			"message": "Unauthorized",
-// 		})
-// 		return
-// 	}
-// 	// If init data is valid, you can use it.
-// 	user, err := UserGetByTelegramID(initData.User.ID)
-// 	if err != nil {
-// 		context.String(500, err.Error())
-// 		return
-// 	}
-// 	// If user is not found, you can create a new one.
-// 	if user == nil {
-// 		user = &User{
-// 			// PlanID:     plan.ID,
-// 			// Plan:       plan,
-// 			TelegramID:       initData.User.ID,
-// 			ChatID:           initData.Chat.ID,
-// 			TelegramUsername: initData.User.Username,
-// 		}
-// 		// Save user to database.
-// 		result := DB.Create(&user)
-// 		// If there is an error while saving user to database, return error.
-// 		if result.Error != nil {
-// 			context.AbortWithStatusJSON(500, map[string]any{
-// 				"message": "Internal Server Error",
-// 			})
-// 			return
-// 		}
-// 	}
-// 	// If you want to update user data, you can do it here.
-// 	context.JSON(200, user)
-// }
 
 func main() {
 	// Your secret bot token.
