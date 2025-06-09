@@ -114,9 +114,9 @@ func main() {
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 			ExposeHeaders:    []string{"Content-Length"},
 			AllowCredentials: true,
-			AllowOriginFunc: func(origin string) bool {
-				return origin == "https://picovpn.ru" || origin == "https://picovpn.ru:8080"
-			},
+			// AllowOriginFunc: func(origin string) bool {
+			// 	return origin == "https://picovpn.ru" || origin == "https://picovpn.ru:8080"
+			// },
 			MaxAge: 12 * time.Hour,
 		}),
 	)
