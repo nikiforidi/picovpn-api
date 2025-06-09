@@ -118,6 +118,8 @@ func main() {
 	)
 	r.POST("/api/auth", showInitDataMiddleware)
 	r.GET("/api/users/:tgid", showInitDataMiddleware, userGet)
+	r.POST("/api/users/", showInitDataMiddleware, userAdd)
+
 	// r.POST("/api/users", UserAdd)
 
 	// Run the server on port 8080 with TLS.
