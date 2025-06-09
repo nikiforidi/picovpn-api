@@ -11,10 +11,10 @@ type User struct {
 	TelegramID int64 `json:"telegramId"`
 	// PlanID     uint
 	// Plan       UserPlan
-	ChatID           int64  `json:"chatId"`
-	TelegramUsername string `json:"telegramUsername"`
-	Account          string `json:"account"`
-	Wallet           string `json:"wallet"`
+	// ChatID           int64  `json:"chatId"`
+	// TelegramUsername string `json:"telegramUsername"`
+	// Account          string `json:"account"`
+	// Wallet           string `json:"wallet"`
 }
 
 type PlanType int

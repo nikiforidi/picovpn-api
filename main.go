@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -43,8 +42,6 @@ func authMiddleware(token string) gin.HandlerFunc {
 			return
 		}
 
-		log.Println(authParts)
-
 		authType := authParts[0]
 		authData := authParts[1]
 
@@ -52,12 +49,12 @@ func authMiddleware(token string) gin.HandlerFunc {
 		case "X-Telegram-Data":
 			// Validate init data. We consider init data sign valid for 1 hour from their
 			// creation moment.
-			if err := initdata.Validate(authData, token, time.Hour); err != nil {
-				context.AbortWithStatusJSON(401, map[string]any{
-					"message": err.Error(),
-				})
-				return
-			}
+			// if err := initdata.Validate(authData, token, time.Hour); err != nil {
+			// 	context.AbortWithStatusJSON(401, map[string]any{
+			// 		"message": err.Error(),
+			// 	})
+			// 	return
+			// }
 
 			// Parse init data. We will surely need it in the future.
 			initData, err := initdata.Parse(authData)
@@ -68,9 +65,38 @@ func authMiddleware(token string) gin.HandlerFunc {
 				return
 			}
 
-			context.Request = context.Request.WithContext(
-				withInitData(context.Request.Context(), initData),
-			)
+			if initData.AuthDate().IsZero() {
+				context.AbortWithStatusJSON(401, map[string]any{
+					"message": "auth_date is missing",
+				})
+				return
+			}
+
+			// Check if init data is expired.
+			if initData.AuthDate().Add(time.Hour).Before(time.Now()) {
+				context.AbortWithStatusJSON(401, map[string]any{
+					"message": "init data is expired",
+				})
+				return
+			}
+
+			user, err := UserGetByTelegramID(initData.User.ID)
+			if err != nil {
+				user = &User{TelegramID: initData.User.ID}
+				result := DB.Create(&user)
+				if result.Error != nil {
+					context.AbortWithStatusJSON(500, map[string]any{
+						"message": result.Error.Error(),
+					})
+					return
+				}
+			}
+
+			context.JSON(200, user)
+
+			// context.Request = context.Request.WithContext(
+			// 	withInitData(context.Request.Context(), initData),
+			// )
 		}
 	}
 }
