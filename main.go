@@ -94,7 +94,11 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	// Set gin logger.
 
+	corsConf := cors.DefaultConfig()
+	corsConf.AllowHeaders = append(corsConf.AllowHeaders, "Authoriation")
+
 	r.Use(
+		cors.New(corsConf),
 		authMiddleware(token),
 		gin.Recovery(),
 		gin.LoggerWithConfig(gin.LoggerConfig{
@@ -107,20 +111,6 @@ func main() {
 					param.Latency.String() + "\n"
 			},
 			Output: os.Stdout,
-		}),
-		cors.New(cors.Config{
-			AllowAllOrigins: true,
-			AllowHeaders: []string{
-				"Accept",
-				"Authorization",
-				"Content-Type",
-				"Origin",
-				"Referer",
-				"Sec-Fetch-Dest",
-				"Sec-Fetch-Mode",
-				"Sec-Fetch-Site",
-				"User-Agent",
-			},
 		}),
 	)
 	r.POST("/api/auth", showInitDataMiddleware)
