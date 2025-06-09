@@ -95,6 +95,8 @@ func main() {
 	// Set gin logger.
 
 	corsConf := cors.DefaultConfig()
+	corsConf.AllowCredentials = true
+	corsConf.AllowAllOrigins = true
 	corsConf.AllowHeaders = append(corsConf.AllowHeaders, "Authoriation")
 
 	r.Use(
