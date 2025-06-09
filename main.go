@@ -109,15 +109,18 @@ func main() {
 			Output: os.Stdout,
 		}),
 		cors.New(cors.Config{
-			AllowOrigins:     []string{"https://picovpn.ru", "https://www.picovpn.ru", "https://picovpn.ru:8080", "https://www.picovpn.ru:8080"},
-			AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "DELETE", "OPTIONS"},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-			ExposeHeaders:    []string{"Content-Length"},
-			AllowCredentials: true,
-			// AllowOriginFunc: func(origin string) bool {
-			// 	return origin == "https://picovpn.ru" || origin == "https://picovpn.ru:8080"
-			// },
-			MaxAge: 12 * time.Hour,
+			AllowAllOrigins: true,
+			AllowHeaders: []string{
+				"Accept",
+				"Authorization",
+				"Content-Type",
+				"Origin",
+				"Referer",
+				"Sec-Fetch-Dest",
+				"Sec-Fetch-Mode",
+				"Sec-Fetch-Site",
+				"User-Agent",
+			},
 		}),
 	)
 	r.POST("/api/auth", showInitDataMiddleware)
