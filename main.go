@@ -95,7 +95,6 @@ func main() {
 	// Set gin logger.
 
 	r.Use(
-		cors.Default(),
 		authMiddleware(token),
 		gin.Recovery(),
 		gin.LoggerWithConfig(gin.LoggerConfig{
@@ -109,17 +108,17 @@ func main() {
 			},
 			Output: os.Stdout,
 		}),
-		// cors.New(cors.Config{
-		// 	AllowOrigins:     []string{"https://picovpn.ru", "https://www.picovpn.ru", "https://picovpn.ru:8080", "https://www.picovpn.ru:8080"},
-		// 	AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "DELETE", "OPTIONS"},
-		// 	AllowHeaders:     []string{"Origin", "Content-Type", "X-Requested-With", "X-Telegram-Data", "Authorization"},
-		// 	ExposeHeaders:    []string{"Content-Length", "X-Total-Count"},
-		// 	AllowCredentials: true,
-		// 	AllowOriginFunc: func(origin string) bool {
-		// 		return origin == "https://picovpn.ru"
-		// 	},
-		// 	MaxAge: 12 * time.Hour,
-		// }),
+		cors.New(cors.Config{
+			AllowOrigins:     []string{"https://picovpn.ru", "https://www.picovpn.ru", "https://picovpn.ru:8080", "https://www.picovpn.ru:8080"},
+			AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			AllowOriginFunc: func(origin string) bool {
+				return origin == "https://picovpn.ru" || origin == "https://picovpn.ru:8080"
+			},
+			MaxAge: 12 * time.Hour,
+		}),
 	)
 	r.POST("/api/auth", showInitDataMiddleware)
 	// r.POST("/api/users", UserAdd)
