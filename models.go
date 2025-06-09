@@ -9,17 +9,17 @@ import (
 type User struct {
 	gorm.Model
 	TelegramID int64 `json:"telegramId"`
-	// PlanID     uint
-	// Plan       UserPlan
+	PlanID     uint
+	Plan       Plan
 	// ChatID           int64  `json:"chatId"`
 	// TelegramUsername string `json:"telegramUsername"`
 	// Account          string `json:"account"`
 	// Wallet           string `json:"wallet"`
 }
 
-type UserPlan struct {
+type Plan struct {
 	gorm.Model
-	UserID    uint
-	User      User
-	ExpiresAt time.Time
+	// UserID    uint      `json:"userId"`
+	// User      User      `json:"user"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }

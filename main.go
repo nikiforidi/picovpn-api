@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -36,7 +37,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
 		authParts := strings.Split(context.GetHeader("authorization"), " ")
 		if len(authParts) != 2 {
-			context.AbortWithStatusJSON(401, map[string]any{
+			context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
 				"message": "Unauthorized",
 			})
 			return
@@ -50,7 +51,7 @@ func authMiddleware(token string) gin.HandlerFunc {
 			// Validate init data. We consider init data sign valid for 1 hour from their
 			// creation moment.
 			if err := initdata.Validate(authData, token, time.Hour); err != nil {
-				context.AbortWithStatusJSON(401, map[string]any{
+				context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
 					"message": err.Error(),
 				})
 				return
@@ -59,38 +60,15 @@ func authMiddleware(token string) gin.HandlerFunc {
 			// Parse init data. We will surely need it in the future.
 			initData, err := initdata.Parse(authData)
 			if err != nil {
-				context.AbortWithStatusJSON(500, map[string]any{
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
 					"message": err.Error(),
 				})
 				return
 			}
 
-			user, err := UserGetByTelegramID(initData.User.ID)
-			if err != nil {
-				user = &User{TelegramID: initData.User.ID}
-				result := DB.Create(&user)
-				if result.Error != nil {
-					context.AbortWithStatusJSON(500, map[string]any{
-						"message": result.Error,
-					})
-					return
-				}
-			}
-
-			plan := UserPlan{
-				ExpiresAt: time.Now().AddDate(0, 1, 0),
-				UserID:    user.ID,
-				User:      *user,
-			}
-			result := DB.Create(&plan)
-			if result.Error != nil {
-				context.AbortWithStatusJSON(500, map[string]any{
-					"message": result.Error,
-				})
-				return
-			}
-
-			context.JSON(200, user)
+			context.Request = context.Request.WithContext(
+				withInitData(context.Request.Context(), initData),
+			)
 		}
 	}
 }
@@ -99,13 +77,13 @@ func authMiddleware(token string) gin.HandlerFunc {
 func showInitDataMiddleware(context *gin.Context) {
 	initData, ok := ctxInitData(context.Request.Context())
 	if !ok {
-		context.AbortWithStatusJSON(401, map[string]any{
+		context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
 			"message": "Init data not found",
 		})
 		return
 	}
 
-	context.JSON(200, initData)
+	context.IndentedJSON(200, initData)
 }
 
 func main() {
@@ -139,6 +117,7 @@ func main() {
 		}),
 	)
 	r.POST("/api/auth", showInitDataMiddleware)
+	r.GET("/api/users/:tgid", showInitDataMiddleware, userGet)
 	// r.POST("/api/users", UserAdd)
 
 	// Run the server on port 8080 with TLS.

@@ -22,7 +22,7 @@ func init() {
 	if err != nil {
 		logrus.Error(err)
 	}
-	err = db.AutoMigrate(&UserPlan{})
+	err = db.AutoMigrate(&Plan{})
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -35,8 +35,8 @@ func UserGetByTelegramID(id int64) (*User, error) {
 	return user, result.Error
 }
 
-func PlansGetExpired() ([]UserPlan, error) {
-	plans := make([]UserPlan, 0)
+func PlansGetExpired() ([]Plan, error) {
+	plans := make([]Plan, 0)
 	result := DB.Where("expires_at >= ?", time.Now()).Find(&plans)
 	return plans, result.Error
 }
