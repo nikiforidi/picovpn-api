@@ -65,20 +65,20 @@ func authMiddleware(token string) gin.HandlerFunc {
 				return
 			}
 
-			if initData.AuthDate().IsZero() {
-				context.AbortWithStatusJSON(401, map[string]any{
-					"message": "auth_date is missing",
-				})
-				return
-			}
+			// if initData.AuthDate().IsZero() {
+			// 	context.AbortWithStatusJSON(401, map[string]any{
+			// 		"message": "auth_date is missing",
+			// 	})
+			// 	return
+			// }
 
-			// Check if init data is expired.
-			if initData.AuthDate().Add(time.Hour).Before(time.Now()) {
-				context.AbortWithStatusJSON(401, map[string]any{
-					"message": "init data is expired",
-				})
-				return
-			}
+			// // Check if init data is expired.
+			// if initData.AuthDate().Add(time.Hour).Before(time.Now()) {
+			// 	context.AbortWithStatusJSON(401, map[string]any{
+			// 		"message": "init data is expired",
+			// 	})
+			// 	return
+			// }
 
 			user, err := UserGetByTelegramID(initData.User.ID)
 			if err != nil {
