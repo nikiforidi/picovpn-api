@@ -97,7 +97,7 @@ func main() {
 	corsConf := cors.DefaultConfig()
 	corsConf.AllowCredentials = true
 	corsConf.AllowAllOrigins = true
-	corsConf.AllowHeaders = append(corsConf.AllowHeaders, "Authoriation")
+	corsConf.AllowHeaders = append(corsConf.AllowHeaders, "Authorization")
 
 	r.Use(
 		cors.New(corsConf),
