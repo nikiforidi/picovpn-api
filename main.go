@@ -65,9 +65,23 @@ func authMiddleware(token string) gin.HandlerFunc {
 				return
 			}
 
-			context.Request = context.Request.WithContext(
-				withInitData(context.Request.Context(), initData),
-			)
+			user, err := UserGetByTelegramID(initData.User.ID)
+			if err != nil {
+				user = &User{TelegramID: initData.User.ID}
+				result := DB.Create(&user)
+				if result.Error != nil {
+					context.AbortWithStatusJSON(500, map[string]any{
+						"message": result.Error,
+					})
+					return
+				}
+			}
+
+			context.JSON(200, user)
+
+			// context.Request = context.Request.WithContext(
+			// 	withInitData(context.Request.Context(), initData),
+			// )
 		}
 	}
 }
