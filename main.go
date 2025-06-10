@@ -136,7 +136,8 @@ func main() {
 	// Make sure to have the certificate and key files in the specified paths.
 	// If you are using a self-signed certificate, you can use the following command to generate the certificate and key files:
 	// openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
-	err := r.RunTLS(":8080", "/etc/letsencrypt/live/picovpn.ru/fullchain.pem", "/etc/letsencrypt/live/picovpn.ru/privkey.pem")
+	// err := r.RunTLS(":8080", "/etc/letsencrypt/live/picovpn.ru/fullchain.pem", "/etc/letsencrypt/live/picovpn.ru/privkey.pem")
+	err := r.Run(":8080")
 	if err != nil {
 		panic(err)
 	}
