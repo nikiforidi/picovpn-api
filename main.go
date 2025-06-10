@@ -97,7 +97,7 @@ func main() {
 
 	r.Use(
 		cors.New(cors.Config{
-			AllowOrigins:     []string{"`https://picovpn.ru`"},
+			AllowOrigins:     []string{"https://picovpn.ru"},
 			AllowMethods:     []string{"GET", "POST"},
 			AllowHeaders:     []string{"Origin", "Authorization"},
 			ExposeHeaders:    []string{"Content-Length"},
