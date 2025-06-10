@@ -95,17 +95,18 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	// Set gin logger.
 
-	corsConf := cors.DefaultConfig()
-	corsConf.AllowCredentials = true
-	corsConf.AllowAllOrigins = true
-	// corsConf.AllowOrigins = append(corsConf.AllowOrigins, "https://picovpn.ru/")
-	// corsConf.AllowOriginFunc = func(origin string) bool {
-	// 	return origin == "https://picovpn.ru/"
-	// }
-	corsConf.AllowHeaders = append(corsConf.AllowHeaders, "Authorization")
-
 	r.Use(
-		cors.New(corsConf),
+		cors.New(cors.Config{
+			AllowOrigins:     []string{"`https://picovpn.ru`"},
+			AllowMethods:     []string{"GET", "POST"},
+			AllowHeaders:     []string{"Origin", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			AllowOriginFunc: func(origin string) bool {
+				return strings.Contains(origin, "picovpn.ru")
+			},
+			MaxAge: 24 * time.Hour,
+		}),
 		authMiddleware(token),
 		gin.Recovery(),
 		gin.LoggerWithConfig(gin.LoggerConfig{
