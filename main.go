@@ -98,6 +98,10 @@ func main() {
 	corsConf := cors.DefaultConfig()
 	corsConf.AllowCredentials = true
 	corsConf.AllowAllOrigins = true
+	corsConf.AllowOrigins = append(corsConf.AllowOrigins, "https://picovpn.ru/")
+	corsConf.AllowOriginFunc = func(origin string) bool {
+		return origin == "https://picovpn.ru/"
+	}
 	corsConf.AllowHeaders = append(corsConf.AllowHeaders, "Authorization")
 
 	r.Use(
