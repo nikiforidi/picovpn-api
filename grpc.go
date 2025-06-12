@@ -22,13 +22,14 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/anatolio-deb/picovpnd/picovpnd"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
-func NewDaemonClient() picovpnd.OpenConnectServiceClient {
+func NewDaemonClient(address string) picovpnd.OpenConnectServiceClient {
 	// flag.Parse()
 
 	// Create tls based credential.
@@ -38,7 +39,7 @@ func NewDaemonClient() picovpnd.OpenConnectServiceClient {
 	}
 
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient("", grpc.WithTransportCredentials(creds))
+	conn, err := grpc.NewClient(strings.Join([]string{address, "50051"}, ":"), grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

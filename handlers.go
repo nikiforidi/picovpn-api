@@ -112,8 +112,9 @@ func userAdd(context *gin.Context) {
 			return
 		}
 		context.IndentedJSON(http.StatusOK, user)
+		// TODO: Get the daemon address from the config or environment variable
 		// Create a new DaemonClient and add the user
-		resp, err := NewDaemonClient().UserAdd(context, &picovpnd.UserAddRequest{
+		resp, err := NewDaemonClient("").UserAdd(context, &picovpnd.UserAddRequest{
 			Username: user.TelegramUsername,
 			Password: password.Password,
 		})
