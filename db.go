@@ -26,6 +26,10 @@ func init() {
 	if err != nil {
 		logrus.Error(err)
 	}
+	err = db.AutoMigrate(&Daemon{})
+	if err != nil {
+		logrus.Error(err)
+	}
 	DB = db
 }
 
