@@ -30,7 +30,6 @@ func main() {
 			},
 			MaxAge: 24 * time.Hour,
 		}),
-		authMiddleware(token),
 		gin.Recovery(),
 		gin.LoggerWithConfig(gin.LoggerConfig{
 			Formatter: func(param gin.LogFormatterParams) string {
@@ -44,9 +43,9 @@ func main() {
 			Output: os.Stdout,
 		}),
 	)
-	r.POST("/api/auth", showInitDataMiddleware)
-	r.GET("/api/users/:tgid", showInitDataMiddleware, userGet)
-	r.POST("/api/users", showInitDataMiddleware, userAdd)
+	r.POST("/api/auth", authMiddleware(token))
+	r.GET("/api/users/:tgid", authMiddleware(token), userGet)
+	r.POST("/api/users", authMiddleware(token), userAdd)
 	r.POST("/api/daemons", registerDaemon)
 
 	// r.POST("/api/users", UserAdd)
