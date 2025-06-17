@@ -143,7 +143,7 @@ func userAdd(context *gin.Context) {
 			pool := x509.NewCertPool()
 			pool.AddCert(cert)
 			creds := credentials.NewClientTLSFromCert(pool, daemon.Address)
-			conn, err := grpc.NewClient("service1:50051", grpc.WithTransportCredentials(creds))
+			conn, err := grpc.NewClient(daemon.Address+":"+daemon.Port, grpc.WithTransportCredentials(creds))
 			if err != nil {
 				log.Printf("did not connect to daemon %s: %v", daemon.Address, err)
 				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
