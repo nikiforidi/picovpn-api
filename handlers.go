@@ -1,14 +1,18 @@
 package main
 
 import (
+	"crypto/x509"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/anatolio-deb/picovpnd/picovpnd"
+	pb "github.com/anatolio-deb/picovpnd/grpc"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // func try(context *gin.Context) {
@@ -112,21 +116,93 @@ func userAdd(context *gin.Context) {
 			return
 		}
 		context.IndentedJSON(http.StatusOK, user)
-		// TODO: Get the daemon address from the config or environment variable
-		// Create a new DaemonClient and add the user
-		resp, err := NewDaemonClient("").UserAdd(context, &picovpnd.UserAddRequest{
-			Username: user.TelegramUsername,
-			Password: password.Password,
-		})
+
+		daemons, err := DaemonsGetAll()
 		if err != nil {
-			errors := []string{err.Error(), resp.Error}
 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-				"message": errors,
+				"message": err,
 			})
-		} else {
-			// If user already exists, return the existing user
-			context.IndentedJSON(http.StatusOK, user)
 			return
 		}
+		if len(daemons) == 0 {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": "No daemons found",
+			})
+			return
+		}
+		// Propogate new user to ocserve server instances through the daemons
+		for _, daemon := range daemons {
+			cert, err := x509.ParseCertificate([]byte(daemon.Certificate))
+			if err != nil {
+				log.Printf("could not parse certificate for daemon %s: %v", daemon.Address, err)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": err,
+				})
+				return
+			}
+			pool := x509.NewCertPool()
+			pool.AddCert(cert)
+			creds := credentials.NewClientTLSFromCert(pool, daemon.Address)
+			conn, err := grpc.NewClient("service1:50051", grpc.WithTransportCredentials(creds))
+			if err != nil {
+				log.Printf("did not connect to daemon %s: %v", daemon.Address, err)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": err,
+				})
+				return
+			}
+			defer conn.Close()
+			c := pb.NewOpenConnectServiceClient(conn)
+			r, err := c.UserAdd(context.Request.Context(), &pb.UserAddRequest{
+				Username: initData.User.Username,
+				Password: password.Password,
+			})
+			if err != nil {
+				log.Printf("could not add user: %v", err)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": err,
+				})
+				return
+			}
+			if r.Error != "" {
+				log.Printf("error adding user: %s", r.Error)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": r.Error,
+				})
+				return
+			}
+			log.Printf("User %s added successfully on daemon %s", initData.User.Username, daemon.Address)
+			context.IndentedJSON(http.StatusOK, map[string]string{
+				"message":  "User added successfully",
+				"username": initData.User.Username,
+			})
+		}
+
 	}
+}
+
+func registerDaemon(context *gin.Context) {
+	b, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			"message": err,
+		})
+		return
+	}
+	daemon := Daemon{}
+	err = json.Unmarshal(b, &daemon)
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			"message": err,
+		})
+		return
+	}
+	result := DB.Create(&daemon)
+	if result.Error != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			"message": result.Error,
+		})
+		return
+	}
+	context.IndentedJSON(http.StatusOK, daemon)
 }

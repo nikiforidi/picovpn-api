@@ -35,45 +35,41 @@ func (p Password) IsValid() bool {
 	return p.Password != "" && p.Password == p.PasswordConfirm
 }
 
-type OCServer struct {
+type Daemon struct {
 	gorm.Model
-	DaemonAddress  string `json:"daemonAddress"`
-	DaemonPort     int    `json:"daemonPort"`
-	DaemonToken    string `json:"daemonToken"`
-	DaemonUser     string `json:"daemonUser"`
-	DaemonPassword string `json:"daemonPassword"`
-	DaemonSSL      bool   `json:"daemonSSL"`
-	DaemonCert     string `json:"daemonCert"`
+	Address     string `json:"address"`
+	Port        string `json:"port"`
+	Certificate string `json:"certificate"`
 }
 
-func (o OCServer) UserAdd(username, password string) {
+func (o Daemon) UserAdd(username, password string) {
 
 }
 
-func (o OCServer) UserLock(username string) map[string]string {
+func (o Daemon) UserLock(username string) map[string]string {
 	return map[string]string{
 		"username": username,
 	}
 }
 
-func (o OCServer) UserUnlock(username string) map[string]string {
+func (o Daemon) UserUnlock(username string) map[string]string {
 	return map[string]string{
 		"username": username,
 	}
 }
 
-func (o OCServer) UserDelete(username string) map[string]string {
+func (o Daemon) UserDelete(username string) map[string]string {
 	return map[string]string{
 		"username": username,
 	}
 }
 
-func (o OCServer) UserGet(username string) map[string]string {
+func (o Daemon) UserGet(username string) map[string]string {
 	return map[string]string{
 		"username": username,
 	}
 }
 
-func (o OCServer) UserList() map[string]string {
+func (o Daemon) UserList() map[string]string {
 	return map[string]string{}
 }

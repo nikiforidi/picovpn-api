@@ -40,3 +40,12 @@ func PlansGetExpired() ([]Plan, error) {
 	result := DB.Where("expires_at >= ?", time.Now()).Find(&plans)
 	return plans, result.Error
 }
+
+func DaemonsGetAll() ([]Daemon, error) {
+	daemons := make([]Daemon, 0)
+	result := DB.Find(&daemons)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return daemons, nil
+}
