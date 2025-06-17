@@ -38,7 +38,7 @@ func (p Password) IsValid() bool {
 type Daemon struct {
 	gorm.Model
 	Address     string `json:"address"`
-	Port        string `json:"port"`
+	Port        int    `json:"port"`
 	Certificate string `json:"certificate"`
 }
 
