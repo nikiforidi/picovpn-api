@@ -116,7 +116,6 @@ func userAdd(context *gin.Context) {
 			})
 			return
 		}
-		context.IndentedJSON(http.StatusOK, user)
 
 		daemons, err := DaemonsGetAll()
 		if err != nil {
@@ -178,7 +177,6 @@ func userAdd(context *gin.Context) {
 				"username": initData.User.Username,
 			})
 		}
-
 	}
 }
 
