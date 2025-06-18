@@ -132,7 +132,7 @@ func userAdd(context *gin.Context) {
 		}
 		// Propogate new user to ocserve server instances through the daemons
 		for _, daemon := range daemons {
-			cert, err := x509.ParseCertificate([]byte(daemon.Certificate))
+			cert, err := x509.ParseCertificate(daemon.Certificate)
 			if err != nil {
 				log.Printf("could not parse certificate for daemon %s: %v", daemon.Address, err)
 				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{

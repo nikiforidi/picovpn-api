@@ -39,7 +39,7 @@ type Daemon struct {
 	gorm.Model
 	Address     string `json:"address"`
 	Port        int    `json:"port"`
-	Certificate string `json:"certificate"`
+	Certificate []byte `json:"certificate"`
 }
 
 func (o Daemon) UserAdd(username, password string) {
