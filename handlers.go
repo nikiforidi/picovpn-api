@@ -208,8 +208,7 @@ func registerDaemon(context *gin.Context) {
 			return
 		}
 		context.IndentedJSON(http.StatusOK, daemon)
-	}
-	if daemonRec.Address == daemon.Address {
+	} else if daemonRec.Address == daemon.Address {
 		daemonRec.Port = daemon.Port
 		daemonRec.Certificate = daemon.Certificate
 		result := DB.Save(&daemonRec)
