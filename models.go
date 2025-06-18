@@ -40,7 +40,7 @@ type Daemon struct {
 	Address string `json:"address"`
 	Port    int    `json:"port"`
 	CertPEM []byte `json:"certPem"`
-	KeyPem  []byte `json:"keyPem"`
+	// KeyPem  []byte `json:"keyPem"`
 }
 
 func (o Daemon) UserAdd(username, password string) {

@@ -132,27 +132,15 @@ func userAdd(context *gin.Context) {
 		}
 		// Propogate new user to ocserve server instances through the daemons
 		for _, daemon := range daemons {
-			// cert, err := auth.ParseCertAndKey(daemon.CertPEM, daemon.KeyPem)
-			// if err != nil {
-			// 	log.Printf("could not parse certificate for daemon %s: %v", daemon.Address, err)
-			// 	context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-			// 		"message": err,
-			// 	})
-			// 	return
-			// }
-			cert, err := x509.ParseCertificate(daemon.CertPEM)
-			if err != nil {
-				log.Printf("could not parse certificate for daemon %s: %v", daemon.Address, err)
+			certPool := x509.NewCertPool()
+			if !certPool.AppendCertsFromPEM(daemon.CertPEM) {
+				log.Printf("could not append certificate for daemon %s: %v", daemon.Address, err)
 				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-					"message": err,
+					"message": "Failed to append certificate",
 				})
 				return
 			}
-
-			pool := x509.NewCertPool()
-			pool.AddCert(cert)
-
-			creds := credentials.NewClientTLSFromCert(pool, daemon.Address)
+			creds := credentials.NewClientTLSFromCert(certPool, daemon.Address)
 			conn, err := grpc.NewClient(fmt.Sprintf(daemon.Address+":%d", daemon.Port), grpc.WithTransportCredentials(creds))
 			if err != nil {
 				log.Printf("did not connect to daemon %s: %v", daemon.Address, err)
