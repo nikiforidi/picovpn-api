@@ -53,3 +53,12 @@ func DaemonsGetAll() ([]Daemon, error) {
 	}
 	return daemons, nil
 }
+
+func DaemonGetByAddress(address string) (*Daemon, error) {
+	var daemon *Daemon
+	result := DB.First(&daemon, "address = ?", address)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return daemon, nil
+}

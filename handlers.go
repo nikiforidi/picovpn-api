@@ -198,12 +198,33 @@ func registerDaemon(context *gin.Context) {
 		})
 		return
 	}
-	result := DB.Create(&daemon)
-	if result.Error != nil {
+	daemonRec, err := DaemonGetByAddress(daemon.Address)
+	if err != nil {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-			"message": result.Error,
+			"message": err,
 		})
 		return
 	}
-	context.IndentedJSON(http.StatusOK, daemon)
+	if daemonRec.Address == daemon.Address {
+		daemonRec.Port = daemon.Port
+		daemonRec.Certificate = daemon.Certificate
+		result := DB.Save(&daemonRec)
+		if result.Error != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": result.Error,
+			})
+			return
+		}
+		context.IndentedJSON(http.StatusOK, daemonRec)
+		return
+	} else {
+		result := DB.Create(&daemon)
+		if result.Error != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": result.Error,
+			})
+			return
+		}
+		context.IndentedJSON(http.StatusOK, daemon)
+	}
 }
