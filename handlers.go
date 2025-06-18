@@ -200,10 +200,14 @@ func registerDaemon(context *gin.Context) {
 	}
 	daemonRec, err := DaemonGetByAddress(daemon.Address)
 	if err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-			"message": err,
-		})
-		return
+		result := DB.Create(&daemon)
+		if result.Error != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": result.Error,
+			})
+			return
+		}
+		context.IndentedJSON(http.StatusOK, daemon)
 	}
 	if daemonRec.Address == daemon.Address {
 		daemonRec.Port = daemon.Port
@@ -217,14 +221,5 @@ func registerDaemon(context *gin.Context) {
 		}
 		context.IndentedJSON(http.StatusOK, daemonRec)
 		return
-	} else {
-		result := DB.Create(&daemon)
-		if result.Error != nil {
-			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-				"message": result.Error,
-			})
-			return
-		}
-		context.IndentedJSON(http.StatusOK, daemon)
 	}
 }
