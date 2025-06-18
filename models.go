@@ -37,9 +37,10 @@ func (p Password) IsValid() bool {
 
 type Daemon struct {
 	gorm.Model
-	Address     string `json:"address"`
-	Port        int    `json:"port"`
-	Certificate []byte `json:"certificate"`
+	Address string `json:"address"`
+	Port    int    `json:"port"`
+	CertPEM []byte `json:"certPem"`
+	KeyPem  []byte `json:"keyPem"`
 }
 
 func (o Daemon) UserAdd(username, password string) {

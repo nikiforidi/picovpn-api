@@ -132,7 +132,15 @@ func userAdd(context *gin.Context) {
 		}
 		// Propogate new user to ocserve server instances through the daemons
 		for _, daemon := range daemons {
-			cert, err := x509.ParseCertificate(daemon.Certificate)
+			// cert, err := auth.ParseCertAndKey(daemon.CertPEM, daemon.KeyPem)
+			// if err != nil {
+			// 	log.Printf("could not parse certificate for daemon %s: %v", daemon.Address, err)
+			// 	context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			// 		"message": err,
+			// 	})
+			// 	return
+			// }
+			cert, err := x509.ParseCertificate(daemon.CertPEM)
 			if err != nil {
 				log.Printf("could not parse certificate for daemon %s: %v", daemon.Address, err)
 				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
@@ -140,8 +148,10 @@ func userAdd(context *gin.Context) {
 				})
 				return
 			}
+
 			pool := x509.NewCertPool()
 			pool.AddCert(cert)
+
 			creds := credentials.NewClientTLSFromCert(pool, daemon.Address)
 			conn, err := grpc.NewClient(fmt.Sprintf(daemon.Address+":%d", daemon.Port), grpc.WithTransportCredentials(creds))
 			if err != nil {
@@ -208,7 +218,7 @@ func registerDaemon(context *gin.Context) {
 		context.IndentedJSON(http.StatusOK, daemon)
 	} else if daemonRec.Address == daemon.Address {
 		daemonRec.Port = daemon.Port
-		daemonRec.Certificate = daemon.Certificate
+		daemonRec.CertPEM = daemon.CertPEM
 		result := DB.Save(&daemonRec)
 		if result.Error != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
