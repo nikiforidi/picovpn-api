@@ -11,6 +11,7 @@ import (
 	pb "github.com/anatolio-deb/picovpnd/grpc"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // func try(context *gin.Context) {
@@ -128,7 +129,7 @@ func userAdd(context *gin.Context) {
 		// 	return
 		// }
 		// Propogate new user to ocserve server instances through the daemons
-		conn, err := grpc.NewClient("daemon:5000")
+		conn, err := grpc.NewClient("daemon:5000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			log.Printf("could not connect to daemon: %v", err)
 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
