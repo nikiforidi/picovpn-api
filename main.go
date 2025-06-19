@@ -46,7 +46,7 @@ func main() {
 	r.POST("/api/auth", authMiddleware(token))
 	r.GET("/api/users/:tgid", authMiddleware(token), userGet)
 	r.POST("/api/users", authMiddleware(token), userAdd)
-	r.POST("/api/daemons", registerDaemon)
+	// r.POST("/api/daemons", registerDaemon)
 
 	// r.POST("/api/users", UserAdd)
 

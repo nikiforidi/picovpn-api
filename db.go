@@ -26,10 +26,10 @@ func init() {
 	if err != nil {
 		logrus.Error(err)
 	}
-	err = db.AutoMigrate(&Daemon{})
-	if err != nil {
-		logrus.Error(err)
-	}
+	// err = db.AutoMigrate(&Daemon{})
+	// if err != nil {
+	// 	logrus.Error(err)
+	// }
 	DB = db
 }
 
@@ -45,20 +45,20 @@ func PlansGetExpired() ([]Plan, error) {
 	return plans, result.Error
 }
 
-func DaemonsGetAll() ([]Daemon, error) {
-	daemons := make([]Daemon, 0)
-	result := DB.Find(&daemons)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return daemons, nil
-}
+// func DaemonsGetAll() ([]Daemon, error) {
+// 	daemons := make([]Daemon, 0)
+// 	result := DB.Find(&daemons)
+// 	if result.Error != nil {
+// 		return nil, result.Error
+// 	}
+// 	return daemons, nil
+// }
 
-func DaemonGetByAddress(address string) (*Daemon, error) {
-	var daemon *Daemon
-	result := DB.First(&daemon, "address = ?", address)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return daemon, nil
-}
+// func DaemonGetByAddress(address string) (*Daemon, error) {
+// 	var daemon *Daemon
+// 	result := DB.First(&daemon, "address = ?", address)
+// 	if result.Error != nil {
+// 		return nil, result.Error
+// 	}
+// 	return daemon, nil
+// }
