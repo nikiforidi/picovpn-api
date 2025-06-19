@@ -35,42 +35,42 @@ func (p Password) IsValid() bool {
 	return p.Password != "" && p.Password == p.PasswordConfirm
 }
 
-// type Daemon struct {
-// 	gorm.Model
-// 	Address string `json:"address"`
-// 	Port    int    `json:"port"`
-// 	CertPEM []byte `json:"certPem"`
-// 	// KeyPem  []byte `json:"keyPem"`
-// }
+type Daemon struct {
+	gorm.Model
+	Address string `json:"address"`
+	Port    int    `json:"port"`
+	CertPEM []byte `json:"certPem"`
+	// KeyPem  []byte `json:"keyPem"`
+}
 
-// func (o Daemon) UserAdd(username, password string) {
+func (o Daemon) UserAdd(username, password string) {
 
-// }
+}
 
-// func (o Daemon) UserLock(username string) map[string]string {
-// 	return map[string]string{
-// 		"username": username,
-// 	}
-// }
+func (o Daemon) UserLock(username string) map[string]string {
+	return map[string]string{
+		"username": username,
+	}
+}
 
-// func (o Daemon) UserUnlock(username string) map[string]string {
-// 	return map[string]string{
-// 		"username": username,
-// 	}
-// }
+func (o Daemon) UserUnlock(username string) map[string]string {
+	return map[string]string{
+		"username": username,
+	}
+}
 
-// func (o Daemon) UserDelete(username string) map[string]string {
-// 	return map[string]string{
-// 		"username": username,
-// 	}
-// }
+func (o Daemon) UserDelete(username string) map[string]string {
+	return map[string]string{
+		"username": username,
+	}
+}
 
-// func (o Daemon) UserGet(username string) map[string]string {
-// 	return map[string]string{
-// 		"username": username,
-// 	}
-// }
+func (o Daemon) UserGet(username string) map[string]string {
+	return map[string]string{
+		"username": username,
+	}
+}
 
-// func (o Daemon) UserList() map[string]string {
-// 	return map[string]string{}
-// }
+func (o Daemon) UserList() map[string]string {
+	return map[string]string{}
+}

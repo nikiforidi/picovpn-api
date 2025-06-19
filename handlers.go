@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,7 +13,7 @@ import (
 	pb "github.com/anatolio-deb/picovpnd/grpc"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 // func try(context *gin.Context) {
@@ -115,53 +117,64 @@ func userAdd(context *gin.Context) {
 			return
 		}
 
-		// daemons, err := DaemonsGetAll()
-		// if err != nil {
-		// 	context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-		// 		"message": err,
-		// 	})
-		// 	return
-		// }
-		// if len(daemons) == 0 {
-		// 	context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-		// 		"message": "No daemons found",
-		// 	})
-		// 	return
-		// }
+		daemons, err := DaemonsGetAll()
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": err,
+			})
+			return
+		}
+		if len(daemons) == 0 {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": "No daemons found",
+			})
+			return
+		}
 		// Propogate new user to ocserve server instances through the daemons
-		conn, err := grpc.NewClient("daemon:5000", grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			log.Printf("could not connect to daemon: %v", err)
-			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-				"message": err,
+		for _, daemon := range daemons {
+			certPool := x509.NewCertPool()
+			if !certPool.AppendCertsFromPEM(daemon.CertPEM) {
+				log.Printf("could not append certificate for daemon %s: %v", daemon.Address, err)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": "Failed to append certificate",
+				})
+				return
+			}
+			creds := credentials.NewClientTLSFromCert(certPool, daemon.Address)
+			conn, err := grpc.NewClient(fmt.Sprintf(daemon.Address+":%d", daemon.Port), grpc.WithTransportCredentials(creds))
+			if err != nil {
+				log.Printf("did not connect to daemon %s: %v", daemon.Address, err)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": err,
+				})
+				return
+			}
+			defer conn.Close()
+			c := pb.NewOpenConnectServiceClient(conn)
+			r, err := c.UserAdd(context.Request.Context(), &pb.UserAddRequest{
+				Username: initData.User.Username,
+				Password: password.Password,
 			})
-			return
-		}
-		defer conn.Close()
-		c := pb.NewOpenConnectServiceClient(conn)
-		r, err := c.UserAdd(context.Request.Context(), &pb.UserAddRequest{
-			Username: initData.User.Username,
-			Password: password.Password,
-		})
-		if err != nil {
-			log.Printf("could not add user: %v", err)
-			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-				"message": err,
+			if err != nil {
+				log.Printf("could not add user: %v", err)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": err,
+				})
+				return
+			}
+			if r.Error != "" {
+				log.Printf("error adding user: %s", r.Error)
+				context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+					"message": r.Error,
+				})
+				return
+			}
+			log.Printf("User %s added successfully on daemon %s", initData.User.Username, daemon.Address)
+			context.IndentedJSON(http.StatusOK, map[string]string{
+				"message":  "User added successfully",
+				"username": initData.User.Username,
 			})
-			return
 		}
-		if r.Error != "" {
-			log.Printf("error adding user: %s", r.Error)
-			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-				"message": r.Error,
-			})
-			return
-		}
-		log.Printf("user %s added successfully", initData.User.Username)
-		context.IndentedJSON(http.StatusOK, map[string]string{
-			"message":  "User added successfully",
-			"username": initData.User.Username,
-		})
 		return
 	}
 	context.IndentedJSON(http.StatusOK, map[string]string{
@@ -170,43 +183,43 @@ func userAdd(context *gin.Context) {
 	})
 }
 
-// func registerDaemon(context *gin.Context) {
-// 	b, err := io.ReadAll(context.Request.Body)
-// 	if err != nil {
-// 		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-// 			"message": err,
-// 		})
-// 		return
-// 	}
-// 	daemon := Daemon{}
-// 	err = json.Unmarshal(b, &daemon)
-// 	if err != nil {
-// 		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-// 			"message": err,
-// 		})
-// 		return
-// 	}
-// 	daemonRec, err := DaemonGetByAddress(daemon.Address)
-// 	if err != nil {
-// 		result := DB.Create(&daemon)
-// 		if result.Error != nil {
-// 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-// 				"message": result.Error,
-// 			})
-// 			return
-// 		}
-// 		context.IndentedJSON(http.StatusOK, daemon)
-// 	} else if daemonRec.Address == daemon.Address {
-// 		daemonRec.Port = daemon.Port
-// 		daemonRec.CertPEM = daemon.CertPEM
-// 		result := DB.Save(&daemonRec)
-// 		if result.Error != nil {
-// 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-// 				"message": result.Error,
-// 			})
-// 			return
-// 		}
-// 		context.IndentedJSON(http.StatusOK, daemonRec)
-// 		return
-// 	}
-// }
+func registerDaemon(context *gin.Context) {
+	b, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			"message": err,
+		})
+		return
+	}
+	daemon := Daemon{}
+	err = json.Unmarshal(b, &daemon)
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			"message": err,
+		})
+		return
+	}
+	daemonRec, err := DaemonGetByAddress(daemon.Address)
+	if err != nil {
+		result := DB.Create(&daemon)
+		if result.Error != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": result.Error,
+			})
+			return
+		}
+		context.IndentedJSON(http.StatusOK, daemon)
+	} else if daemonRec.Address == daemon.Address {
+		daemonRec.Port = daemon.Port
+		daemonRec.CertPEM = daemon.CertPEM
+		result := DB.Save(&daemonRec)
+		if result.Error != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+				"message": result.Error,
+			})
+			return
+		}
+		context.IndentedJSON(http.StatusOK, daemonRec)
+		return
+	}
+}
