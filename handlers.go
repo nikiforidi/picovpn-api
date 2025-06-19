@@ -175,7 +175,12 @@ func userAdd(context *gin.Context) {
 				"username": initData.User.Username,
 			})
 		}
+		return
 	}
+	context.IndentedJSON(http.StatusOK, map[string]string{
+		"message":  "User already exists",
+		"username": user.TelegramUsername,
+	})
 }
 
 func registerDaemon(context *gin.Context) {
