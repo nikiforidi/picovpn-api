@@ -170,17 +170,16 @@ func userAdd(context *gin.Context) {
 				return
 			}
 			log.Printf("User %s added successfully on daemon %s", initData.User.Username, daemon.Address)
-			context.IndentedJSON(http.StatusOK, map[string]string{
+			context.IndentedJSON(http.StatusOK, map[string]any{
 				"message":  "User added successfully",
-				"username": initData.User.Username,
+				"initData": initData,
 			})
 		}
 		return
 	}
-	context.IndentedJSON(http.StatusOK, map[string]string{
+	context.IndentedJSON(http.StatusOK, map[string]any{
 		"message":  "User already exists",
-		"username": user.TelegramUsername,
-	})
+		"initData": initData})
 }
 
 func registerDaemon(context *gin.Context) {
