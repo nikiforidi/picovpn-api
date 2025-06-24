@@ -47,8 +47,7 @@ func main() {
 	r.GET("/api/users/:tgid", authMiddleware(token), userGet)
 	r.POST("/api/users", authMiddleware(token), userAdd)
 	r.POST("/api/daemons", registerDaemon)
-
-	// r.POST("/api/users", UserAdd)
+	r.POST("/api/password-reset", authMiddleware(token), passwordReset)
 
 	// Run the server on port 8080 with TLS.
 	// Make sure to replace the paths to your SSL certificate and key files.
