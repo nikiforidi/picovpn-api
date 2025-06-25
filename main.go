@@ -45,7 +45,7 @@ func main() {
 		}),
 	)
 	r.POST("/api/auth", showInitDataMiddleware)
-	r.GET("/api/users/:tgid", userGet)
+	r.GET("/api/users/", userGet)
 	r.POST("/api/users", userAdd)
 	r.POST("/api/daemons", registerDaemon)
 	r.POST("/api/password-reset", passwordReset)

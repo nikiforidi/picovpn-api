@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	pb "github.com/anatolio-deb/picovpnd/grpc"
@@ -39,15 +38,14 @@ import (
 // }
 
 func userGet(context *gin.Context) {
-	tgid := context.Param("tgid")
-	i, err := strconv.Atoi(tgid)
-	if err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
-			"message": err,
+	initData, ok := ctxInitData(context.Request.Context())
+	if !ok {
+		context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
+			"message": "Init data not found",
 		})
 		return
 	}
-	user, err := UserGetByTelegramID(int64(i))
+	user, err := UserGetByTelegramID(initData.User.ID)
 	if err != nil {
 		context.AbortWithStatusJSON(http.StatusNotFound, map[string]any{
 			"message": err,
