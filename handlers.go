@@ -205,7 +205,6 @@ func registerDaemon(context *gin.Context) {
 			})
 			return
 		}
-		context.IndentedJSON(http.StatusOK, daemon)
 	} else if daemonRec.Address == daemon.Address {
 		daemonRec.Port = daemon.Port
 		daemonRec.CertPEM = daemon.CertPEM
@@ -216,9 +215,9 @@ func registerDaemon(context *gin.Context) {
 			})
 			return
 		}
-		context.IndentedJSON(http.StatusOK, daemonRec)
-		return
 	}
+	context.IndentedJSON(http.StatusOK, daemon)
+
 }
 
 func passwordReset(context *gin.Context) {

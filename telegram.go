@@ -67,6 +67,18 @@ func authMiddleware(token string) gin.HandlerFunc {
 			context.Request = context.Request.WithContext(
 				withInitData(context.Request.Context(), initData),
 			)
+		case "X-Daemon":
+			if token != authData {
+				context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
+					"message": "invalid authorization data",
+				})
+				return
+			}
+		default:
+			context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
+				"message": "missing authorization data",
+			})
+			return
 		}
 	}
 }
