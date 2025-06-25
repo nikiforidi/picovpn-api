@@ -54,12 +54,6 @@ func userGet(context *gin.Context) {
 		})
 		return
 	}
-	if user == nil {
-		context.AbortWithStatusJSON(http.StatusNotFound, map[string]any{
-			"message": err,
-		})
-		return
-	}
 	context.IndentedJSON(http.StatusOK, user)
 }
 

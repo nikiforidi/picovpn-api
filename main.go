@@ -19,6 +19,7 @@ func main() {
 	// Set gin logger.
 
 	r.Use(
+		authMiddleware(token),
 		cors.New(cors.Config{
 			AllowOrigins:     []string{"*"},
 			AllowMethods:     []string{"GET", "POST"},
@@ -43,11 +44,11 @@ func main() {
 			Output: os.Stdout,
 		}),
 	)
-	r.POST("/api/auth", authMiddleware(token))
-	r.GET("/api/users/:tgid", authMiddleware(token), userGet)
-	r.POST("/api/users", authMiddleware(token), userAdd)
+	r.POST("/api/auth", showInitDataMiddleware)
+	r.GET("/api/users/:tgid", userGet)
+	r.POST("/api/users", userAdd)
 	r.POST("/api/daemons", registerDaemon)
-	r.POST("/api/password-reset", authMiddleware(token), passwordReset)
+	r.POST("/api/password-reset", passwordReset)
 
 	// Run the server on port 8080 with TLS.
 	// Make sure to replace the paths to your SSL certificate and key files.

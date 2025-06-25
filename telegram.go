@@ -64,11 +64,9 @@ func authMiddleware(token string) gin.HandlerFunc {
 				return
 			}
 
-			context.IndentedJSON(200, initData)
-
-			// context.Request = context.Request.WithContext(
-			// 	withInitData(context.Request.Context(), initData),
-			// )
+			context.Request = context.Request.WithContext(
+				withInitData(context.Request.Context(), initData),
+			)
 		}
 	}
 }
