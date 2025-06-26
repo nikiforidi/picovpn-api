@@ -35,6 +35,8 @@ func authMiddleware(token string) gin.HandlerFunc {
 		// <auth-type> <auth-data>
 		// <auth-type> must be "tma", and <auth-data> is Telegram Mini Apps init data.
 		authParts := strings.Split(context.GetHeader("authorization"), " ")
+		log.Println(authParts)
+
 		if len(authParts) != 2 {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
 				"message": "Unauthorized",
@@ -44,8 +46,6 @@ func authMiddleware(token string) gin.HandlerFunc {
 
 		authType := authParts[0]
 		authData := authParts[1]
-
-		log.Println(authType, authData)
 
 		switch authType {
 		case "X-Telegram-Data":
