@@ -9,9 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var TELEGRAM_BOT_TOKEN string = ""
+
 func main() {
 	// Your secret bot token.
-	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	TELEGRAM_BOT_TOKEN = os.Getenv("TELEGRAM_BOT_TOKEN")
 	// Set gin mode to release.
 	r := gin.New()
 
@@ -19,7 +21,7 @@ func main() {
 	// Set gin logger.
 
 	r.Use(
-		authMiddleware(token),
+		authMiddleware(TELEGRAM_BOT_TOKEN),
 		cors.New(cors.Config{
 			AllowOrigins:     []string{"*"},
 			AllowMethods:     []string{"GET", "POST"},

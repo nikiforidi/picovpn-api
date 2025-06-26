@@ -67,16 +67,16 @@ func authMiddleware(token string) gin.HandlerFunc {
 			context.Request = context.Request.WithContext(
 				withInitData(context.Request.Context(), initData),
 			)
-		case "X-Daemon":
-			if token != authData {
+		case "X-Daemon-Key":
+			if authData != TELEGRAM_BOT_TOKEN {
 				context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
-					"message": "invalid authorization data",
+					"message": "Unauthorized",
 				})
 				return
 			}
 		default:
 			context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
-				"message": "missing authorization data",
+				"message": "Unauthorized",
 			})
 			return
 		}
