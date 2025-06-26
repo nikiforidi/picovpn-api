@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -43,6 +44,8 @@ func authMiddleware(token string) gin.HandlerFunc {
 
 		authType := authParts[0]
 		authData := authParts[1]
+
+		log.Println(authType, authData)
 
 		switch authType {
 		case "X-Telegram-Data":
