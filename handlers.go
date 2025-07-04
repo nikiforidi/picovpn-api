@@ -322,3 +322,20 @@ func plansGet(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, plan)
 
 }
+
+func daemonsGet(context *gin.Context) {
+	daemons, err := DaemonsGetAll()
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusNotFound, map[string]any{
+			"message": err,
+		})
+		return
+	}
+	public := make([]DaemonPublic, len(daemons))
+	for i, d := range daemons {
+		public[i] = DaemonPublic{
+			Address: d.Address,
+		}
+	}
+	context.IndentedJSON(http.StatusOK, public)
+}

@@ -42,3 +42,7 @@ type Daemon struct {
 	CertPEM []byte `json:"certPem"`
 	// KeyPem  []byte `json:"keyPem"`
 }
+
+type DaemonPublic struct {
+	Address string `json:"address"`
+}
