@@ -62,3 +62,13 @@ func DaemonGetByAddress(address string) (*Daemon, error) {
 	}
 	return daemon, nil
 }
+
+func PlansGetByTelegramUserID(id int64) (*Plan, error) {
+	user, err := UserGetByTelegramID(id)
+	if err != nil {
+		return nil, err
+	}
+	plan := Plan{}
+	result := DB.First(&plan, "user_id=?", user.ID)
+	return &plan, result.Error
+}

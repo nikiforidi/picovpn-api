@@ -303,3 +303,22 @@ func passwordReset(context *gin.Context) {
 		})
 	}
 }
+
+func plansGet(context *gin.Context) {
+	initData, ok := ctxInitData(context.Request.Context())
+	if !ok {
+		context.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{
+			"message": "Init data not found",
+		})
+		return
+	}
+	plan, err := PlansGetByTelegramUserID(initData.User.ID)
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusNotFound, map[string]any{
+			"message": err,
+		})
+		return
+	}
+	context.IndentedJSON(http.StatusOK, plan)
+
+}
