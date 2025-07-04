@@ -70,5 +70,6 @@ func PlansGetByTelegramUserID(id int64) (*Plan, error) {
 	}
 	plan := Plan{}
 	result := DB.First(&plan, "user_id=?", user.ID)
+	plan.User = *user
 	return &plan, result.Error
 }
