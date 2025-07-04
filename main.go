@@ -1,12 +1,20 @@
 package main
 
 import (
+	"context"
+	"crypto/x509"
+	"fmt"
+	"log"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
+	pb "github.com/anatolio-deb/picovpnd/grpc"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var TELEGRAM_BOT_TOKEN string = ""
@@ -52,6 +60,8 @@ func main() {
 	r.POST("/api/daemons", registerDaemon)
 	r.POST("/api/password-reset", passwordReset)
 
+	go LockExpiredUsers()
+
 	// Run the server on port 8080 with TLS.
 	// Make sure to replace the paths to your SSL certificate and key files.
 	// You can use Let's Encrypt or any other certificate authority.
@@ -66,4 +76,64 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func LockExpiredUsers() {
+	ticker := time.NewTicker(time.Minute)
+	done := make(chan bool)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				h, m, _ := time.Now().Clock()
+				if m == 0 && (h == 9 || h == 15) {
+					daemons, err := DaemonsGetAll()
+					if err != nil {
+						log.Println(err)
+					}
+
+					plans, err := PlansGetExpired()
+					if err != nil {
+						log.Println(err)
+					}
+					for _, p := range plans {
+						for _, daemon := range daemons {
+							certPool := x509.NewCertPool()
+							if !certPool.AppendCertsFromPEM(daemon.CertPEM) {
+								log.Println(err)
+								continue
+							}
+							creds := credentials.NewClientTLSFromCert(certPool, daemon.Address)
+							conn, err := grpc.NewClient(fmt.Sprintf(daemon.Address+":%d", daemon.Port), grpc.WithTransportCredentials(creds))
+							if err != nil {
+								log.Println(err)
+								continue
+							}
+							defer conn.Close()
+							c := pb.NewOpenConnectServiceClient(conn)
+							resp, err := c.UserLock(ctx, &pb.UserLockRequest{
+								Username: p.User.TelegramUsername,
+							})
+							if err != nil {
+								log.Println(err)
+								continue
+							}
+							if resp.Error != "" {
+								log.Println(err)
+								continue
+							}
+						}
+					}
+				}
+			}
+		}
+	}()
+
+	<-ctx.Done()
+	stop()
+	done <- true
 }

@@ -3,7 +3,7 @@ module github.com/anatolio-deb/picovpn-api
 go 1.23.8
 
 require (
-	github.com/anatolio-deb/picovpnd v1.2.8
+	github.com/anatolio-deb/picovpnd v1.4.5
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.1
 	github.com/sirupsen/logrus v1.9.3
@@ -14,9 +14,11 @@ require (
 )
 
 require (
+	github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
+	github.com/creack/pty v1.1.17 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

@@ -88,26 +88,22 @@ func userAdd(context *gin.Context) {
 	user, err := UserGetByTelegramID(initData.User.ID)
 	if err != nil {
 		// If user does not exist, create a new one
-		plan := Plan{ExpiresAt: time.Now().AddDate(0, 1, 0)}
-		result := DB.Create(&plan)
+
+		user = &User{
+			TelegramUsername: initData.User.Username,
+			TelegramID:       initData.User.ID,
+		}
+
+		result := DB.Create(&user)
 		if result.Error != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
 				"message": result.Error,
 			})
 			return
 		}
-		user = &User{
-			TelegramUsername: initData.User.Username,
-			TelegramID:       initData.User.ID,
-			PlanID:           plan.ID,
-			Plan:             plan,
-			// ChatID:           initData.User.ChatID,
-			// TelegramUsername: initData.User.Username,
-			// Account:          initData.User.Account,
-			// Wallet:           initData.User.Wallet,
-		}
 
-		result = DB.Create(&user)
+		plan := Plan{ExpiresAt: time.Now().AddDate(0, 1, 0), UserID: user.ID, User: *user}
+		result = DB.Create(&plan)
 		if result.Error != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
 				"message": result.Error,
